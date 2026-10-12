@@ -281,6 +281,44 @@ export const LocalMusicContext: FC = () => {
 			const songFromDb = await db.songs.get(musicId);
 
 			if (songFromDb) {
+				if (
+					songFromDb.filePath &&
+					(songFromDb.filePath.startsWith("http://") ||
+						songFromDb.filePath.startsWith("https://")) &&
+					(!songFromDb.lyric || songFromDb.lyricFormat === "none")
+				) {
+					try {
+						const match = songFromDb.filePath.match(/\/api\/audio\/([^/?#]+)/);
+						if (match) {
+							const baseUrl = songFromDb.filePath.substring(
+								0,
+								songFromDb.filePath.indexOf("/api/audio/"),
+							);
+							const trackId = match[1];
+							const res = await fetch(`${baseUrl}/api/lyrics/${trackId}`);
+							if (res.ok) {
+								const lyricData = await res.json();
+								const rawTtml = lyricData.raw_ttml || "";
+								const rawLrc = lyricData.raw_lrc || "";
+								const isTtml =
+									lyricData.lyrics_type === "ttml" || rawTtml.includes("<tt");
+								const lyricStr = isTtml ? rawTtml : rawLrc || "";
+								const lyricFormat = isTtml ? "ttml" : rawLrc ? "lrc" : "none";
+								if (lyricStr) {
+									songFromDb.lyric = lyricStr;
+									songFromDb.lyricFormat = lyricFormat;
+									await db.songs.update(songFromDb.id, {
+										lyric: lyricStr,
+										lyricFormat,
+									});
+								}
+							}
+						}
+					} catch (err) {
+						console.warn("Error fetching remote lyrics:", err);
+					}
+				}
+
 				store.set(musicNameAtom, songFromDb.songName);
 				store.set(musicAlbumNameAtom, songFromDb.songAlbum);
 				store.set(

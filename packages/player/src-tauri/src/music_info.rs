@@ -21,15 +21,18 @@ pub struct MusicInfo {
 
 impl MusicInfo {
     fn from_audio_info(v: AudioInfo, cover_path: String) -> Self {
+        let lyric_format = if v.lyric.is_empty() {
+            "".into()
+        } else if v.lyric.trim_start().starts_with("<tt") || v.lyric.contains("<tt ") {
+            "ttml".into()
+        } else {
+            "lrc".into()
+        };
         Self {
             name: v.name,
             artist: v.artist,
             album: v.album,
-            lyric_format: if v.lyric.is_empty() {
-                "".into()
-            } else {
-                "lrc".into()
-            },
+            lyric_format,
             lyric: v.lyric,
             cover_path,
             duration: v.duration,
@@ -166,7 +169,11 @@ pub async fn read_local_music_metadata(
             let lyric_file_path = file_path_ref.with_extension(ext);
             if lyric_file_path.exists() {
                 if let Ok(lyric) = fs.read_to_string(&lyric_file_path) {
-                    music_info.lyric_format = ext.to_string();
+                    music_info.lyric_format = if lyric.trim_start().starts_with("<tt") || lyric.contains("<tt ") {
+                        "ttml".to_string()
+                    } else {
+                        ext.to_string()
+                    };
                     music_info.lyric = lyric;
                     break;
                 } else {

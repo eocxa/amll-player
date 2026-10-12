@@ -7,6 +7,7 @@ import {
 	PlusIcon,
 	ReloadIcon,
 	TrashIcon,
+	GlobeIcon,
 } from "@radix-ui/react-icons";
 import {
 	Box,
@@ -46,6 +47,7 @@ import { ViewportList } from "react-viewport-list";
 import { PageContainer } from "../../components/PageContainer/index.tsx";
 import { PlaylistCover } from "../../components/PlaylistCover/index.tsx";
 import { PlaylistSongCard } from "../../components/PlaylistSongCard/index.tsx";
+import { ServerSyncDialog } from "../../components/ServerSyncDialog/index.tsx";
 import { queueManagerAtom } from "../../states/appAtoms.ts";
 import { db, type Song } from "../../utils/db-client.ts";
 import { queuePlaylistIdAtom } from "../../utils/play-queue-manager.ts";
@@ -147,6 +149,7 @@ export const Component: FC = () => {
 	const [playlistSettingsOpen, setPlaylistSettingsOpen] = useState(false);
 	const [settingsPlaylistName, setSettingsPlaylistName] = useState("");
 	const [folderToRemove, setFolderToRemove] = useState<string | null>(null);
+	const [serverSyncOpen, setServerSyncOpen] = useState(false);
 
 	const store = useStore();
 	const queueManager = useAtomValue(queueManagerAtom);
@@ -633,6 +636,10 @@ export const Component: FC = () => {
 											<Trans i18nKey="page.playlist.addLocalMusic.label">
 												添加本地歌曲
 											</Trans>
+										</Button>
+										<Button variant="soft" onClick={() => setServerSyncOpen(true)}>
+											<GlobeIcon />
+											Servidor
 										</Button>{" "}
 										{isFolderPlaylist && (
 											<Button variant="soft" onClick={onRefreshPlaylist}>
@@ -690,6 +697,9 @@ export const Component: FC = () => {
 										</IconButton>
 										<IconButton variant="soft" onClick={onAddLocalMusics}>
 											<PlusIcon />
+										</IconButton>
+										<IconButton variant="soft" onClick={() => setServerSyncOpen(true)} title="Servidor">
+											<GlobeIcon />
 										</IconButton>{" "}
 										{isFolderPlaylist && (
 											<IconButton variant="soft" onClick={onRefreshPlaylist}>
@@ -1002,6 +1012,11 @@ export const Component: FC = () => {
 					</Flex>
 				</Dialog.Content>
 			</Dialog.Root>
+			<ServerSyncDialog
+				opened={serverSyncOpen}
+				onOpenChange={setServerSyncOpen}
+				targetPlaylistId={Number(param.id)}
+			/>
 		</PageContainer>
 	);
 };

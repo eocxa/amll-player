@@ -122,7 +122,23 @@ fn process_file(path: &std::path::Path) -> Result<ScannedSong, String> {
 
     let cover_bytes = reader.cover().map(|c| c.data.to_vec());
 
-    let (lyric_format, lyric) = find_lyric_file(path);
+    let (mut lyric_format, mut lyric) = find_lyric_file(path);
+
+    if lyric.is_empty() {
+        for tag in ["lyrics", "ttml", "unsyncedlyrics", "syncedlyrics", "©lyr", "uslt", "lyric"] {
+            if let Some(embedded) = metadata.get(tag) {
+                if !embedded.trim().is_empty() {
+                    lyric = embedded.clone();
+                    lyric_format = if lyric.trim_start().starts_with("<tt") || lyric.contains("<tt ") {
+                        "ttml".to_string()
+                    } else {
+                        "lrc".to_string()
+                    };
+                    break;
+                }
+            }
+        }
+    }
 
     let model = song::Model {
         id: song_id,
@@ -146,7 +162,12 @@ fn find_lyric_file(audio_path: &Path) -> (String, String) {
     for ext in LYRIC_EXTENSIONS {
         let lyric_path = audio_path.with_extension(ext);
         if let Ok(content) = std::fs::read_to_string(&lyric_path) {
-            return (ext.to_string(), content);
+            let actual_format = if content.trim_start().starts_with("<tt") || content.contains("<tt ") {
+                "ttml".to_string()
+            } else {
+                ext.to_string()
+            };
+            return (actual_format, content);
         }
     }
     (String::new(), String::new())

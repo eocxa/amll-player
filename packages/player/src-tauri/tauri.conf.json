@@ -18,7 +18,7 @@
 			"icons/icon.ico",
 			"icons/icon.png"
 		],
-		"createUpdaterArtifacts": true,
+		"createUpdaterArtifacts": false,
 		"android": {
 			"minSdkVersion": 26
 		}

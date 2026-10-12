@@ -33,16 +33,7 @@ pub async fn create_common_win<'a>(
                 "AMLL Player"
             }
         })
-        .visible({
-            #[cfg(target_os = "macos")]
-            {
-                true
-            }
-            #[cfg(not(target_os = "macos"))]
-            {
-                false
-            }
-        })
+        .visible(true)
         .decorations({
             #[cfg(target_os = "macos")]
             {
@@ -72,19 +63,6 @@ pub async fn recreate_window(app: &AppHandle, label: &str, path: Option<&str>) {
         let _ = win;
         return;
     }
-    #[cfg(debug_assertions)]
-    let url = {
-        tauri::WebviewUrl::External(
-            app.config()
-                .build
-                .dev_url
-                .clone()
-                .unwrap()
-                .join(path.unwrap_or(""))
-                .expect("Failed to create external URL"),
-        )
-    };
-    #[cfg(not(debug_assertions))]
     let url = tauri::WebviewUrl::App(path.unwrap_or("index.html").into());
     let win = create_common_win(app, url, label).await;
 
@@ -92,6 +70,7 @@ pub async fn recreate_window(app: &AppHandle, label: &str, path: Option<&str>) {
 
     #[cfg(desktop)]
     {
+        let _ = win.show();
         let _ = win.set_focus();
         if let Ok(orig_size) = win.inner_size() {
             let _ = win.set_size(Size::Physical(PhysicalSize::new(0, 0)));

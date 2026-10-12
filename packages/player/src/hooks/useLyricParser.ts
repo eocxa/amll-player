@@ -91,45 +91,51 @@ export const useLyricParser = (
 			let parsedLyricLines: LyricLine[] = [];
 			let parsedMetadata: [string, string[]][] = [];
 
-			switch (format) {
-				case "lrc": {
-					parsedLyricLines = parseLrc(lyricStr);
-					console.log(LYRIC_LOG_TAG, "解析出 LyRiC 歌词", parsedLyricLines);
-					break;
-				}
-				case "eslrc": {
-					parsedLyricLines = parseEslrc(lyricStr);
-					console.log(LYRIC_LOG_TAG, "解析出 ESLyRiC 歌词", parsedLyricLines);
-					break;
-				}
-				case "yrc": {
-					parsedLyricLines = parseYrc(lyricStr);
-					console.log(LYRIC_LOG_TAG, "解析出 YRC 歌词", parsedLyricLines);
-					break;
-				}
-				case "qrc": {
-					parsedLyricLines = parseQrc(lyricStr);
-					console.log(LYRIC_LOG_TAG, "解析出 QRC 歌词", parsedLyricLines);
-					break;
-				}
-				case "lys": {
-					parsedLyricLines = parseLys(lyricStr);
-					console.log(
-						LYRIC_LOG_TAG,
-						"解析出 Lyricify Syllable 歌词",
-						parsedLyricLines,
-					);
-					break;
-				}
-				case "ttml": {
-					const ttmlResult = handleTTMLParsing(lyricStr, displayLanguage);
-					parsedLyricLines = ttmlResult.lines;
-					parsedMetadata = ttmlResult.metadata;
-					console.log(LYRIC_LOG_TAG, "解析出 TTML 歌词", ttmlResult);
-					break;
-				}
-				default: {
-					return { lyricLines: [], hasLyrics: false, metadata: [] };
+			const isTtmlContent =
+				format === "ttml" ||
+				lyricStr.trim().startsWith("<tt") ||
+				lyricStr.includes("<tt ") ||
+				lyricStr.includes("http://www.w3.org/ns/ttml");
+
+			if (isTtmlContent) {
+				const ttmlResult = handleTTMLParsing(lyricStr, displayLanguage);
+				parsedLyricLines = ttmlResult.lines;
+				parsedMetadata = ttmlResult.metadata;
+				console.log(LYRIC_LOG_TAG, "解析出 TTML 歌词", ttmlResult);
+			} else {
+				switch (format) {
+					case "lrc": {
+						parsedLyricLines = parseLrc(lyricStr);
+						console.log(LYRIC_LOG_TAG, "解析出 LyRiC 歌词", parsedLyricLines);
+						break;
+					}
+					case "eslrc": {
+						parsedLyricLines = parseEslrc(lyricStr);
+						console.log(LYRIC_LOG_TAG, "解析出 ESLyRiC 歌词", parsedLyricLines);
+						break;
+					}
+					case "yrc": {
+						parsedLyricLines = parseYrc(lyricStr);
+						console.log(LYRIC_LOG_TAG, "解析出 YRC 歌词", parsedLyricLines);
+						break;
+					}
+					case "qrc": {
+						parsedLyricLines = parseQrc(lyricStr);
+						console.log(LYRIC_LOG_TAG, "解析出 QRC 歌词", parsedLyricLines);
+						break;
+					}
+					case "lys": {
+						parsedLyricLines = parseLys(lyricStr);
+						console.log(
+							LYRIC_LOG_TAG,
+							"解析出 Lyricify Syllable 歌词",
+							parsedLyricLines,
+						);
+						break;
+					}
+					default: {
+						return { lyricLines: [], hasLyrics: false, metadata: [] };
+					}
 				}
 			}
 
