@@ -16,7 +16,7 @@ export const ServerSyncDialog: FC<{
 	targetPlaylistId?: number;
 }> = ({ opened, onOpenChange, targetPlaylistId }) => {
 	const [serverUrl, setServerUrl] = useState(() => {
-		return localStorage.getItem("music_server_url") || "http://localhost:8000";
+		return localStorage.getItem("music_server_url") || "http://100.82.180.79:8000";
 	});
 	const [isTesting, setIsTesting] = useState(false);
 	const [isSyncing, setIsSyncing] = useState(false);
